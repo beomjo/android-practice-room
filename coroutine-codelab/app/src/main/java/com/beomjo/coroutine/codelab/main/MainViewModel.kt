@@ -3,8 +3,11 @@ package com.beomjo.coroutine.codelab.main
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.beomjo.coroutine.codelab.util.BACKGROUND
 import com.beomjo.coroutine.codelab.util.singleArgViewModelFactory
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 
@@ -15,11 +18,15 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
     private val _snackBar = MutableLiveData<String?>()
     val snackbar: LiveData<String?>
         get() = _snackBar
+
     val title = repository.title
+
     private val _spinner = MutableLiveData<Boolean>(false)
     val spinner: LiveData<Boolean>
         get() = _spinner
+
     private var tapCount = 0
+
     private val _taps = MutableLiveData<String>("$tapCount taps")
     val taps: LiveData<String>
         get() = _taps
@@ -30,11 +37,10 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
     }
 
     private fun updateTaps() {
-        // TODO: Convert updateTaps to use coroutines
-        tapCount++
-        BACKGROUND.submit {
-            Thread.sleep(1_000)
-            _taps.postValue("${tapCount} taps")
+        viewModelScope.launch {
+            tapCount++
+            delay(1_000)
+            _taps.postValue("$tapCount taps")
         }
     }
 
@@ -42,8 +48,7 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
         _snackBar.value = null
     }
 
-    fun refreshTitle() {
-        // TODO: Convert refreshTitle to use coroutines
+    private fun refreshTitle() {
         _spinner.value = true
         repository.refreshTitleWithCallbacks(object : TitleRefreshCallback {
             override fun onCompleted() {
