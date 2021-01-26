@@ -2,10 +2,7 @@ package com.beomjo.coroutine.codelab.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
-import com.beomjo.coroutine.codelab.util.BACKGROUND
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 
 class TitleRepository(val network: MainNetwork, val titleDao: TitleDao) {
 
@@ -13,17 +10,15 @@ class TitleRepository(val network: MainNetwork, val titleDao: TitleDao) {
 
     suspend fun refreshTitle() {
         try {
-            val result = network.fetchNextTitle()
+            val result = withTimeout(5_000) {
+                network.fetchNextTitle()
+            }
             titleDao.insertTitle(Title(result))
-        } catch (cause: Throwable) {
-            throw TitleRefreshError("Unable to refresh title", cause)
+        } catch (error: Throwable) {
+            println(error)
+            throw TitleRefreshError("Unable to refresh title", error)
         }
     }
 }
 
 class TitleRefreshError(message: String, cause: Throwable?) : Throwable(message, cause)
-
-interface TitleRefreshCallback {
-    fun onCompleted()
-    fun onError(cause: Throwable)
-}
