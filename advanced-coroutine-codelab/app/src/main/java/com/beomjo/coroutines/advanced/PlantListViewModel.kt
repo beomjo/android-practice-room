@@ -6,8 +6,7 @@ import com.beomjo.advancedcoroutines.NoGrowZone
 import com.beomjo.advancedcoroutines.Plant
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class PlantListViewModel internal constructor(
@@ -51,22 +50,29 @@ class PlantListViewModel internal constructor(
         launchDataLoad {
             plantRepository.tryUpdateRecentPlantsCache()
         }
+
+        growZoneChannel.asFlow().mapLatest { growZone ->
+            _spinner.value = true
+            if (growZone == NoGrowZone) {
+                plantRepository.tryUpdateRecentPlantsCache()
+            } else {
+                plantRepository.tryUpdateRecentPlantsForGrowZoneCache(growZone)
+            }
+        }
+            .onCompletion { _spinner.value = false }
+            .catch { throwable -> _snackbar.value = throwable.message }
+            .launchIn(viewModelScope)
+
     }
 
     fun setGrowZoneNumber(num: Int) {
         growZone.value = GrowZone(num)
         growZoneChannel.offer(GrowZone(num))
-
-        launchDataLoad {
-            plantRepository.tryUpdateRecentPlantsForGrowZoneCache(GrowZone(num))
-        }
     }
 
     fun clearGrowZoneNumber() {
         growZone.value = NoGrowZone
         growZoneChannel.offer(NoGrowZone)
-
-        launchDataLoad { plantRepository.tryUpdateRecentPlantsCache() }
     }
 
     fun isFiltered() = growZone.value != NoGrowZone
