@@ -3,18 +3,25 @@ package com.beomjo.coroutines.advanced
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.map
+import androidx.lifecycle.switchMap
 import com.beomjo.advancedcoroutines.GrowZone
 import com.beomjo.advancedcoroutines.Plant
 import com.beomjo.advancedcoroutines.util.CacheOnSuccess
 import com.beomjo.coroutines.advanced.utils.ComparablePair
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class PlantRepository private constructor(
     private val plantDao: PlantDao,
     private val plantService: NetworkService,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) {
+
+    private val plantsListSortOrderCache = CacheOnSuccess(
+        onErrorFallback = { listOf<String>() },
+        block = { plantService.customPlantSortOrder() }
+    )
 
     val plants: LiveData<List<Plant>> = liveData<List<Plant>> {
         val plantsLiveData = plantDao.getPlants()
@@ -24,10 +31,14 @@ class PlantRepository private constructor(
         })
     }
 
-    private val plantsListSortOrderCache = CacheOnSuccess(
-        onErrorFallback = { listOf<String>() },
-        block = { plantService.customPlantSortOrder() }
-    )
+    fun getPlantsWithGrowZone(growZone: GrowZone) =
+        plantDao.getPlantsWithGrowZoneNumber(growZone.number)
+            .switchMap { plantList ->
+                liveData {
+                    val customSortOrder = plantsListSortOrderCache.getOrAwait()
+                    emit(plantList.applyMainSafeSort(customSortOrder))
+                }
+            }
 
     private fun List<Plant>.applySort(customSortOrder: List<String>): List<Plant> {
         return sortedBy { plant ->
@@ -38,8 +49,10 @@ class PlantRepository private constructor(
         }
     }
 
-    fun getPlantsWithGrowZone(growZone: GrowZone) =
-        plantDao.getPlantsWithGrowZoneNumber(growZone.number)
+    private suspend fun List<Plant>.applyMainSafeSort(customSortOrder: List<String>) =
+        withContext(defaultDispatcher) {
+            this@applyMainSafeSort.applySort(customSortOrder)
+        }
 
     private fun shouldUpdatePlantsCache(): Boolean {
         // suspending function, so you can e.g. check the status of the database here
