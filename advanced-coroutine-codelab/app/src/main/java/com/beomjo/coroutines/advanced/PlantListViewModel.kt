@@ -1,10 +1,6 @@
 package com.beomjo.coroutines.advanced
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.beomjo.advancedcoroutines.GrowZone
 import com.beomjo.advancedcoroutines.NoGrowZone
 import com.beomjo.advancedcoroutines.Plant
@@ -33,8 +29,14 @@ class PlantListViewModel internal constructor(
         }
     }
 
+    val plantsUsingFlow: LiveData<List<Plant>> = plantRepository.plantsFlow.asLiveData()
+
     init {
         clearGrowZoneNumber()
+
+        launchDataLoad {
+            plantRepository.tryUpdateRecentPlantsCache()
+        }
     }
 
     fun setGrowZoneNumber(num: Int) {
