@@ -1,2 +1,4 @@
+include ':sunflower'
+include ':mylibrary'
 include ':app'
 rootProject.name = "Advanced Coroutines on Android"
