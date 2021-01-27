@@ -5,6 +5,9 @@ import com.beomjo.advancedcoroutines.GrowZone
 import com.beomjo.advancedcoroutines.NoGrowZone
 import com.beomjo.advancedcoroutines.Plant
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.ConflatedBroadcastChannel
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
 class PlantListViewModel internal constructor(
@@ -29,7 +32,18 @@ class PlantListViewModel internal constructor(
         }
     }
 
-    val plantsUsingFlow: LiveData<List<Plant>> = plantRepository.plantsFlow.asLiveData()
+    private val growZoneChannel = ConflatedBroadcastChannel<GrowZone>()
+
+    val plantsUsingFlow: LiveData<List<Plant>> = growZoneChannel.asFlow()
+        .flatMapLatest { growZone ->
+            if (growZone == NoGrowZone) {
+                plantRepository.plantsFlow
+            } else {
+                plantRepository.getPlantsWithGrowZoneFlow(growZone)
+            }
+        }
+        .asLiveData()
+
 
     init {
         clearGrowZoneNumber()
@@ -41,12 +55,16 @@ class PlantListViewModel internal constructor(
 
     fun setGrowZoneNumber(num: Int) {
         growZone.value = GrowZone(num)
+        growZoneChannel.offer(GrowZone(num))
 
-        launchDataLoad { plantRepository.tryUpdateRecentPlantsCache() }
+        launchDataLoad {
+            plantRepository.tryUpdateRecentPlantsForGrowZoneCache(GrowZone(num))
+        }
     }
 
     fun clearGrowZoneNumber() {
         growZone.value = NoGrowZone
+        growZoneChannel.offer(NoGrowZone)
 
         launchDataLoad { plantRepository.tryUpdateRecentPlantsCache() }
     }
