@@ -2,11 +2,9 @@ package com.beomjo.dagger.settings
 
 import com.beomjo.dagger.user.UserDataRepository
 import com.beomjo.dagger.user.UserManager
+import javax.inject.Inject
 
-/**
- * SettingsViewModel is the ViewModel that [SettingsActivity] uses to handle complex logic.
- */
-class SettingsViewModel(
+class SettingsViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val userManager: UserManager
 ) {
