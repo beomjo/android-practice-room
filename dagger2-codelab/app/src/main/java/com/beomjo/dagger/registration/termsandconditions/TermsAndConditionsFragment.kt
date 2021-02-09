@@ -24,7 +24,7 @@ class TermsAndConditionsFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_terms_and_conditions, container, false)
 
-        (requireActivity().application as MyApplication).appComponent.inject(this)
+        (activity as RegistrationActivity).registrationComponent.inject(this)
 
         view.findViewById<Button>(R.id.next).setOnClickListener {
             registrationViewModel.acceptTCs()

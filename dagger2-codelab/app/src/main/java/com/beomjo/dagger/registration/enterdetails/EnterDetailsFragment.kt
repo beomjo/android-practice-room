@@ -35,7 +35,7 @@ class EnterDetailsFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_enter_details, container, false)
 
-        ((requireActivity()).application as MyApplication).appComponent.inject(this)
+        (activity as RegistrationActivity).registrationComponent.inject(this)
 
         enterDetailsViewModel.enterDetailsState.observe(this,
             Observer<EnterDetailsViewState> { state ->

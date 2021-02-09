@@ -1,9 +1,11 @@
 package com.beomjo.dagger.registration
 
+import com.beomjo.dagger.di.ActivityScope
 import com.beomjo.dagger.registration.enterdetails.EnterDetailsFragment
 import com.beomjo.dagger.registration.termsandconditions.TermsAndConditionsFragment
 import dagger.Subcomponent
 
+@ActivityScope
 @Subcomponent
 interface RegistrationComponent {
 

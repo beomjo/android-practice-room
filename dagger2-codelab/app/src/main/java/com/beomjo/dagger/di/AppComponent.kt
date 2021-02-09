@@ -3,8 +3,7 @@ package com.beomjo.dagger.di
 import android.content.Context
 import com.beomjo.dagger.main.MainActivity
 import com.beomjo.dagger.registration.RegistrationActivity
-import com.beomjo.dagger.registration.enterdetails.EnterDetailsFragment
-import com.beomjo.dagger.registration.termsandconditions.TermsAndConditionsFragment
+import com.beomjo.dagger.registration.RegistrationComponent
 import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Singleton
@@ -18,7 +17,7 @@ interface AppComponent {
         fun create(@BindsInstance context: Context): AppComponent
     }
 
-    fun inject(activity: RegistrationActivity)
+    fun registrationComponent(): RegistrationComponent.Factory
 
     fun inject(activity: MainActivity)
 

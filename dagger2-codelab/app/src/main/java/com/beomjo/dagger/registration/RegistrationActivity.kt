@@ -12,6 +12,8 @@ import javax.inject.Inject
 
 class RegistrationActivity : AppCompatActivity() {
 
+    lateinit var registrationComponent: RegistrationComponent
+
     @Inject
     lateinit var registrationViewModel: RegistrationViewModel
 
@@ -19,7 +21,9 @@ class RegistrationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_registration)
 
-        (application as MyApplication).appComponent.inject(this)
+        registrationComponent =
+            (application as MyApplication).appComponent.registrationComponent().create()
+        registrationComponent.inject(this)
 
         supportFragmentManager.beginTransaction()
             .add(R.id.fragment_holder, EnterDetailsFragment())
