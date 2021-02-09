@@ -10,20 +10,23 @@ import com.beomjo.dagger.R
 import com.beomjo.dagger.login.LoginActivity
 import com.beomjo.dagger.registration.RegistrationActivity
 import com.beomjo.dagger.settings.SettingsActivity
+import com.beomjo.dagger.user.UserManager
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var mainViewModel: MainViewModel
+    @Inject
+    lateinit var userManager: UserManager
 
-    /**
-     * If the User is not registered, RegistrationActivity will be launched,
-     * If the User is not logged in, LoginActivity will be launched,
-     * else carry on with MainActivity
-     */
+    @Inject
+    lateinit var mainViewModel: MainViewModel
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val userManager = (application as MyApplication).userManager
+        (application as MyApplication).appComponent.inject(this)
+
         if (!userManager.isUserLoggedIn()) {
             if (!userManager.isUserRegistered()) {
                 startActivity(Intent(this, RegistrationActivity::class.java))
@@ -34,8 +37,6 @@ class MainActivity : AppCompatActivity() {
             }
         } else {
             setContentView(R.layout.activity_main)
-
-            mainViewModel = MainViewModel(userManager.userDataRepository!!)
             setupViews()
         }
     }
