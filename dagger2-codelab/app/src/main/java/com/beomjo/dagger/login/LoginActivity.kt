@@ -13,18 +13,20 @@ import com.beomjo.dagger.main.MainActivity
 import com.beomjo.dagger.MyApplication
 import com.beomjo.dagger.R
 import com.beomjo.dagger.registration.RegistrationActivity
+import javax.inject.Inject
 
 class LoginActivity : AppCompatActivity() {
 
-    private lateinit var loginViewModel: LoginViewModel
+    @Inject
+    lateinit var loginViewModel: LoginViewModel
     private lateinit var errorTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        // Creates ViewModel and listens for the loginState LiveData
-        loginViewModel = LoginViewModel((application as MyApplication).userManager)
+        (application as MyApplication).appComponent.loginComponent().create().inject(this)
+
         loginViewModel.loginState.observe(this, Observer<LoginViewState> { state ->
             when (state) {
                 is LoginSuccess -> {

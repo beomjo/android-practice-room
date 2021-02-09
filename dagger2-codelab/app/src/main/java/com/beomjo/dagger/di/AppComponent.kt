@@ -1,8 +1,8 @@
 package com.beomjo.dagger.di
 
 import android.content.Context
+import com.beomjo.dagger.login.LoginComponent
 import com.beomjo.dagger.main.MainActivity
-import com.beomjo.dagger.registration.RegistrationActivity
 import com.beomjo.dagger.registration.RegistrationComponent
 import dagger.BindsInstance
 import dagger.Component
@@ -18,6 +18,8 @@ interface AppComponent {
     }
 
     fun registrationComponent(): RegistrationComponent.Factory
+
+    fun loginComponent(): LoginComponent.Factory
 
     fun inject(activity: MainActivity)
 
