@@ -1,11 +1,13 @@
 package com.beomjo.dagger.storage
 
+import com.beomjo.dagger.user.UserComponent
 import com.beomjo.dagger.user.UserManager
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.mockito.Mockito
 
 class UserManagerTest {
 
@@ -14,8 +16,12 @@ class UserManagerTest {
 
     @Before
     fun setup() {
+        val userComponentFactory = Mockito.mock(UserComponent.Factory::class.java)
+        val userComponent = Mockito.mock(UserComponent::class.java)
+        Mockito.`when`(userComponentFactory.create()).thenReturn(userComponent)
+
         storage = FakeStorage()
-        userManager = UserManager(storage)
+        userManager = UserManager(storage, userComponentFactory)
     }
 
     @Test
