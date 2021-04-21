@@ -21,7 +21,7 @@ abstract class WordRoomDataBase : RoomDatabase() {
             super.onCreate(db)
             INSTANCE?.let {
                 scope.launch {
-
+                    populateDatabase(it.wordDao())
                 }
             }
         }
