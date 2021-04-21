@@ -1,4 +1,4 @@
-package com.beomjo.codelab.room
+package com.beomjo.codelab.room.ui
 
 import androidx.lifecycle.*
 import com.beomjo.codelab.room.persistence.entity.Word
