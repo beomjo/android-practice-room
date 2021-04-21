@@ -25,6 +25,14 @@ class WordListAdapter : RecyclerView.Adapter<WordListAdapter.WordViewHolder>() {
         return items.size
     }
 
+    fun addList(words: List<Word>) {
+        val diffCallback = WordsComparator(items, words)
+        val result = DiffUtil.calculateDiff(diffCallback)
+        items.clear()
+        items.addAll(words)
+        result.dispatchUpdatesTo(this)
+    }
+
     class WordViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val wordItemView: TextView = itemView.findViewById(R.id.textView)
 
@@ -41,13 +49,24 @@ class WordListAdapter : RecyclerView.Adapter<WordListAdapter.WordViewHolder>() {
         }
     }
 
-    class WordsComparator : DiffUtil.ItemCallback<Word>() {
-        override fun areItemsTheSame(oldItem: Word, newItem: Word): Boolean {
-            return oldItem == newItem
+    class WordsComparator(
+        private val oldItems: List<Word>,
+        private val newItems: List<Word>,
+    ) : DiffUtil.Callback() {
+        override fun getOldListSize(): Int {
+            return oldItems.size
         }
 
-        override fun areContentsTheSame(oldItem: Word, newItem: Word): Boolean {
-            return oldItem.word == newItem.word
+        override fun getNewListSize(): Int {
+            return newItems.size
+        }
+
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldItems[oldItemPosition] == newItems[newItemPosition]
+        }
+
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldItems[oldItemPosition].word == newItems[newItemPosition].word
         }
     }
 }
