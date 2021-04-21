@@ -1,4 +1,4 @@
-package com.beomjo.codelab.room.adapter
+package com.beomjo.codelab.room.ui.adapter
 
 import android.view.LayoutInflater
 import android.view.View

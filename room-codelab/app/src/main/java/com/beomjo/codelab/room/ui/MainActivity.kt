@@ -9,7 +9,7 @@ import androidx.activity.viewModels
 import androidx.lifecycle.LifecycleOwner
 import com.beomjo.codelab.room.R
 import com.beomjo.codelab.room.WordApplication
-import com.beomjo.codelab.room.adapter.WordListAdapter
+import com.beomjo.codelab.room.ui.adapter.WordListAdapter
 import com.beomjo.codelab.room.databinding.ActivityMainBinding
 import com.beomjo.codelab.room.persistence.entity.Word
 
