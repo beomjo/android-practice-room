@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Android Room</string>
+    <string name="add_word">단어 추가</string>
 </resources>
