@@ -24,9 +24,11 @@ import com.example.android.dagger.MyApplication
 import com.example.android.dagger.R
 import com.example.android.dagger.login.LoginActivity
 import com.example.android.dagger.main.MainActivity
+import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class SettingsActivity : AppCompatActivity() {
 
     // @Inject annotated fields will be provided by Dagger
@@ -34,12 +36,6 @@ class SettingsActivity : AppCompatActivity() {
     lateinit var settingsViewModel: SettingsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
-        // Gets the userManager from the application graph to obtain the UserComponent
-        // and gets this Activity injected
-        val entryPoint = EntryPointAccessors.fromApplication(applicationContext, MainActivity.UserManagerEntryPoint::class.java)
-        val userManager = entryPoint.userManager()
-
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
