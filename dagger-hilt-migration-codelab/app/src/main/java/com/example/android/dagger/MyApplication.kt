@@ -17,7 +17,6 @@
 package com.example.android.dagger
 
 import android.app.Application
-import com.example.android.dagger.di.DaggerAppComponent
 import dagger.hilt.android.HiltAndroidApp
 
 
