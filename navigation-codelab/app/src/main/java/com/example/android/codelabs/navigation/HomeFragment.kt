@@ -29,9 +29,9 @@ import androidx.navigation.navOptions
  */
 class HomeFragment : Fragment() {
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View? {
         setHasOptionsMenu(true)
         return inflater.inflate(R.layout.home_fragment, container, false)
@@ -57,9 +57,11 @@ class HomeFragment : Fragment() {
             findNavController().navigate(R.id.flow_step_one_dest, null, options)
         }
 
-        view.findViewById<Button>(R.id.navigate_action_button)?.setOnClickListener(
-                Navigation.createNavigateOnClickListener(R.id.next_action, null)
-        )
+        view.findViewById<Button>(R.id.navigate_action_button)?.setOnClickListener {
+            HomeFragmentDirections.nextAction(flowStepNumber = 1).let {
+                findNavController().navigate(it)
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
