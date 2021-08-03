@@ -30,6 +30,9 @@
         <action
             android:id="@+id/action_home_dest_to_settingsFragment3"
             app:destination="@id/settings_dest" />
+        <action
+            android:id="@+id/action_home_dest_to_testFragment"
+            app:destination="@id/shopping_dest" />
 
     </fragment>
 
@@ -44,7 +47,7 @@
 
         <action
             android:id="@+id/next_action"
-            app:destination="@+id/flow_step_two_dest"></action>
+            app:destination="@+id/flow_step_two_dest" />
     </fragment>
 
     <fragment
@@ -59,7 +62,7 @@
 
         <action
             android:id="@+id/next_action"
-            app:popUpTo="@id/home_dest"></action>
+            app:popUpTo="@id/home_dest" />
     </fragment>
 
     <fragment
@@ -79,4 +82,9 @@
         android:name="com.example.android.codelabs.navigation.SettingsFragment"
         android:label="settings_fragment"
         tools:layout="@layout/settings_fragment" />
+
+    <fragment
+        android:id="@+id/shopping_dest"
+        android:name="com.example.android.codelabs.navigation.ShoppingFragment"
+        android:label="@string/shopping_fragment_text" />
 </navigation>
