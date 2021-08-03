@@ -27,6 +27,9 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_home_dest_to_settingsFragment3"
+            app:destination="@id/settings_dest" />
 
     </fragment>
 
@@ -70,11 +73,9 @@
             android:defaultValue="Android!" />
 
         <deepLink app:uri="www.example.com/{myarg}" />
-
-        <!-- TODO END STEP 11.1 -->
     </fragment>
     <fragment
-        android:id="@+id/settingsFragment3"
+        android:id="@+id/settings_dest"
         android:name="com.example.android.codelabs.navigation.SettingsFragment"
         android:label="settings_fragment"
         tools:layout="@layout/settings_fragment" />
