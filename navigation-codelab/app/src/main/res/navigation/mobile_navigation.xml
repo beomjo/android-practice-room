@@ -69,7 +69,7 @@
             android:name="myarg"
             android:defaultValue="Android!" />
 
-        <!--<deepLink app:uri="www.example.com/{myarg}" />-->
+        <deepLink app:uri="www.example.com/{myarg}" />
 
         <!-- TODO END STEP 11.1 -->
     </fragment>
