@@ -18,154 +18,116 @@ package com.example.android.codelabs.paging.ui
 
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.distinctUntilChanged
-import androidx.lifecycle.map
+import androidx.lifecycle.*
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.OnScrollListener
 import com.example.android.codelabs.paging.Injection
 import com.example.android.codelabs.paging.databinding.ActivitySearchRepositoriesBinding
-import com.example.android.codelabs.paging.model.RepoSearchResult
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.*
 
 class SearchRepositoriesActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivitySearchRepositoriesBinding
+    private lateinit var viewModel: SearchRepositoriesViewModel
+    private val adapter = ReposAdapter()
+
+    private var searchJob: Job? = null
+
+    private fun search(query: String) {
+        // Make sure we cancel the previous job before creating a new one
+        searchJob?.cancel()
+        searchJob = lifecycleScope.launch {
+            viewModel.searchRepo(query).collect {
+                adapter.submitData(it)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val binding = ActivitySearchRepositoriesBinding.inflate(layoutInflater)
+        binding = ActivitySearchRepositoriesBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
 
         // get the view model
-        val viewModel = ViewModelProvider(this, Injection.provideViewModelFactory(owner = this))
+        viewModel = ViewModelProvider(this, Injection.provideViewModelFactory(this))
             .get(SearchRepositoriesViewModel::class.java)
 
         // add dividers between RecyclerView's row items
         val decoration = DividerItemDecoration(this, DividerItemDecoration.VERTICAL)
         binding.list.addItemDecoration(decoration)
 
-        // bind the state
-        binding.bindState(
-            uiState = viewModel.state,
-            uiActions = viewModel.accept
-        )
+        initAdapter()
+        val query = savedInstanceState?.getString(LAST_SEARCH_QUERY) ?: DEFAULT_QUERY
+        search(query)
+        initSearch(query)
     }
 
-    /**
-     * Binds the [UiState] provided  by the [SearchRepositoriesViewModel] to the UI,
-     * and allows the UI to feed back user actions to it.
-     */
-    private fun ActivitySearchRepositoriesBinding.bindState(
-        uiState: LiveData<UiState>,
-        uiActions: (UiAction) -> Unit
-    ) {
-        val repoAdapter = ReposAdapter()
-        list.adapter = repoAdapter
-
-        bindSearch(
-            uiState = uiState,
-            onQueryChanged = uiActions
-        )
-        bindList(
-            repoAdapter = repoAdapter,
-            uiState = uiState,
-            onScrollChanged = uiActions
-        )
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(LAST_SEARCH_QUERY, binding.searchRepo.text.trim().toString())
     }
 
-    private fun ActivitySearchRepositoriesBinding.bindSearch(
-        uiState: LiveData<UiState>,
-        onQueryChanged: (UiAction.Search) -> Unit
-    ) {
-        searchRepo.setOnEditorActionListener { _, actionId, _ ->
+    private fun initAdapter() {
+        binding.list.adapter = adapter
+    }
+
+    private fun initSearch(query: String) {
+        binding.searchRepo.setText(query)
+
+        binding.searchRepo.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_GO) {
-                updateRepoListFromInput(onQueryChanged)
+                updateRepoListFromInput()
                 true
             } else {
                 false
             }
         }
-        searchRepo.setOnKeyListener { _, keyCode, event ->
+        binding.searchRepo.setOnKeyListener { _, keyCode, event ->
             if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
-                updateRepoListFromInput(onQueryChanged)
+                updateRepoListFromInput()
                 true
             } else {
                 false
             }
         }
 
-        uiState
-            .map(UiState::query)
-            .distinctUntilChanged()
-            .observe(this@SearchRepositoriesActivity, searchRepo::setText)
+        // Scroll to top when the list is refreshed from network.
+        lifecycleScope.launch {
+            adapter.loadStateFlow
+                // Only emit when REFRESH LoadState for RemoteMediator changes.
+                .distinctUntilChangedBy { it.refresh }
+                // Only react to cases where Remote REFRESH completes i.e., NotLoading.
+                .filter { it.refresh is LoadState.NotLoading }
+                .collect { binding.list.scrollToPosition(0) }
+        }
     }
 
-    private fun ActivitySearchRepositoriesBinding.updateRepoListFromInput(onQueryChanged: (UiAction.Search) -> Unit) {
-        searchRepo.text.trim().let {
+    private fun updateRepoListFromInput() {
+        binding.searchRepo.text.trim().let {
             if (it.isNotEmpty()) {
-                list.scrollToPosition(0)
-                onQueryChanged(UiAction.Search(query = it.toString()))
+                search(it.toString())
             }
         }
     }
 
-    private fun ActivitySearchRepositoriesBinding.bindList(
-        repoAdapter: ReposAdapter,
-        uiState: LiveData<UiState>,
-        onScrollChanged: (UiAction.Scroll) -> Unit
-    ) {
-        setupScrollListener(onScrollChanged)
-
-        uiState
-            .map(UiState::searchResult)
-            .distinctUntilChanged()
-            .observe(this@SearchRepositoriesActivity) { result ->
-                when (result) {
-                    is RepoSearchResult.Success -> {
-                        showEmptyList(result.data.isEmpty())
-                        repoAdapter.submitList(result.data)
-                    }
-                    is RepoSearchResult.Error -> {
-                        Toast.makeText(
-                            this@SearchRepositoriesActivity,
-                            "\uD83D\uDE28 Wooops $result.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
-            }
+    private fun showEmptyList(show: Boolean) {
+        if (show) {
+            binding.emptyList.visibility = View.VISIBLE
+            binding.list.visibility = View.GONE
+        } else {
+            binding.emptyList.visibility = View.GONE
+            binding.list.visibility = View.VISIBLE
+        }
     }
 
-    private fun ActivitySearchRepositoriesBinding.showEmptyList(show: Boolean) {
-        emptyList.isVisible = show
-        list.isVisible = !show
-    }
-
-    private fun ActivitySearchRepositoriesBinding.setupScrollListener(
-        onScrollChanged: (UiAction.Scroll) -> Unit
-    ) {
-        val layoutManager = list.layoutManager as LinearLayoutManager
-        list.addOnScrollListener(object : OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                val totalItemCount = layoutManager.itemCount
-                val visibleItemCount = layoutManager.childCount
-                val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
-
-                onScrollChanged(
-                    UiAction.Scroll(
-                        visibleItemCount = visibleItemCount,
-                        lastVisibleItemPosition = lastVisibleItem,
-                        totalItemCount = totalItemCount
-                    )
-                )
-            }
-        })
+    companion object {
+        private const val LAST_SEARCH_QUERY: String = "last_search_query"
+        private const val DEFAULT_QUERY = "Android"
     }
 }

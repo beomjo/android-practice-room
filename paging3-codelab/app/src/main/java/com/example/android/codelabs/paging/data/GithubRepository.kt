@@ -39,7 +39,6 @@ class GithubRepository(private val service: GithubService) {
             ),
             pagingSourceFactory = { GithubPagingSource(query, service) }
         ).flow
-
     }
 
     companion object {
